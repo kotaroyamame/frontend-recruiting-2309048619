@@ -3,12 +3,23 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import Button from 'react-bootstrap/Button'
 import './App.css'
 import { useState } from 'react'
-type FormData = {
+import { Form1__Post } from './api/index'
+import type { Form1 } from './api/apiTypes'
+type FormDataValue = {
   data: string
   valid: boolean
   inValid: boolean
   invalidMessage: string
   check: Function
+}
+type FromData = {
+  [key in
+    | 'name'
+    | 'email'
+    | 'zip'
+    | 'prefecture'
+    | 'address1'
+    | 'address2']: FormDataValue
 }
 function App () {
   const PREF_OPTIONS = [
@@ -61,13 +72,13 @@ function App () {
     '沖縄県'
   ]
   const [validated, setValidated] = useState(false)
-  const [formdata, setFormdata] = useState({
+  const [formdata, setFormdata] = useState<FromData>({
     name: {
       data: '',
       valid: false,
       inValid: false,
       invalidMessage: '',
-      check: (s: string, self: FormData) => {
+      check: (s: string, self: FormDataValue) => {
         self.data = s
         self.invalidMessage = ''
         self.valid = true
@@ -84,7 +95,7 @@ function App () {
       valid: false,
       inValid: false,
       invalidMessage: '',
-      check: (s: string, self: FormData) => {
+      check: (s: string, self: FormDataValue) => {
         self.data = s
         const regex =
           /^[a-zA-Z0-9_.+-]+@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/
@@ -103,7 +114,7 @@ function App () {
       valid: false,
       inValid: false,
       invalidMessage: '',
-      check: (s: string, self: FormData) => {
+      check: (s: string, self: FormDataValue) => {
         self.data = s
         const regex = /^\d{7}$/
         self.invalidMessage = ''
@@ -125,7 +136,7 @@ function App () {
       valid: false,
       inValid: false,
       invalidMessage: '',
-      check: (s: string, self: FormData) => {
+      check: (s: string, self: FormDataValue) => {
         self.data = s
         self.invalidMessage = ''
         self.valid = true
@@ -137,7 +148,7 @@ function App () {
       valid: false,
       inValid: false,
       invalidMessage: '',
-      check: (s: string, self: FormData) => {
+      check: (s: string, self: FormDataValue) => {
         self.data = s
         self.invalidMessage = ''
         self.valid = true
@@ -149,7 +160,7 @@ function App () {
       valid: false,
       inValid: false,
       invalidMessage: '',
-      check: (s: string, self: FormData) => {
+      check: (s: string, self: FormDataValue) => {
         self.data = s
 
         self.invalidMessage = ''
@@ -173,11 +184,38 @@ function App () {
       [targetName]: formdata[targetName]
     })
   }
+  const submit = async (event: any) => {
+    event.preventDefault()
+    event.stopPropagation()
+    const form = event.currentTarget
+    if (form.checkValidity() === false) {
+      throw new Error(
+        'Unexpected validation error:There may be multiple validation logics.'
+      )
+    }
+    const sendFormData: any = {
+      name: '',
+      email: '',
+      zip: '',
+      prefecture: '',
+      address1: ''
+    }
+    for (const [key, value] of Object.entries(formdata)) {
+      if (key === 'address2' && value.data === '') {
+        continue
+      }
+      sendFormData[key] = value.data
+    }
+    const { status, success, statusText } = await Form1__Post(sendFormData)
+    if (success) {
+      alert('送信完了')
+    }
+  }
   return (
     <>
       <div className='App'>
         <div>{JSON.stringify(formdata)}</div>
-        <Form>
+        <Form onSubmit={submit}>
           <Form.Group className='mb-3' controlId='Form1.ControlInput1'>
             <Form.Label>氏名</Form.Label>
             <Form.Control
@@ -272,7 +310,7 @@ function App () {
               {formdata.address2.invalidMessage}
             </Form.Control.Feedback>
           </Form.Group>
-          <Button type='submit' disabled={!validated}>
+          <Button type='submit' disabled={!validated} onClick={submit}>
             登録
           </Button>
         </Form>
