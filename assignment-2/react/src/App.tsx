@@ -214,7 +214,6 @@ function App () {
   return (
     <>
       <div className='App'>
-        <div>{JSON.stringify(formdata)}</div>
         <Form onSubmit={submit}>
           <Form.Group className='mb-3' controlId='Form1.ControlInput1'>
             <Form.Label>氏名</Form.Label>
